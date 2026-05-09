@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Search, Loader2, BookOpen, ExternalLink, ArrowRight, Sparkles, Database, FileText } from 'lucide-react';
 
-interface Paper {
+interface PaperAnalysis {
   id: string;
   title: string;
   abstract: string;
@@ -10,20 +10,31 @@ interface Paper {
   pdf_url: string;
   published: string;
   source: string;
+  summary: string;
+  methodology: string;
+  key_findings: string;
 }
 
-interface ResearchData {
+interface InsightReport {
+  research_gaps: string[];
+  contradictions: string[];
+  trends: string[];
+  future_directions: string[];
+}
+
+interface FinalReport {
   topic: string;
-  papers_processed: number;
-  chunks_embedded: number;
-  insights: string;
-  sources: Paper[];
+  paper_count: number;
+  papers: PaperAnalysis[];
+  literature_review: string;
+  insights: InsightReport | null;
+  generated_at: string;
 }
 
 function App() {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [researchData, setResearchData] = useState<ResearchData | null>(null);
+  const [researchData, setResearchData] = useState<FinalReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -74,7 +85,7 @@ function App() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Conduct research on a topic (e.g. LLM Agents)..."
+              placeholder="Conduct full research on a topic (e.g. LLM Agents)..."
               className="flex-1 bg-transparent border-none outline-none px-4 py-3 text-foreground placeholder:text-muted"
             />
             <button
@@ -97,7 +108,7 @@ function App() {
           </div>
           {isLoading && (
             <p className="text-center text-sm text-primary/80 mt-4 animate-pulse">
-              Searching arXiv → Downloading PDFs → Extracting Text → Building FAISS Vector DB → Generating RAG Insights... (This might take ~15 seconds)
+              Planning → Searching → Downloading → Vectorizing → Deep Analysis → Synthesizing Insights → Writing Report... (Takes ~30-60s)
             </p>
           )}
         </form>
@@ -110,35 +121,52 @@ function App() {
 
         {researchData && (
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-            {/* Insights Section */}
+            {/* Literature Review Section */}
             <div className="bg-card border border-primary/30 rounded-3xl p-8 shadow-2xl shadow-primary/5 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-primary/20 rounded-lg">
                   <Sparkles className="w-6 h-6 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold">AI Insights</h2>
+                <h2 className="text-2xl font-bold">Final Literature Review</h2>
               </div>
               
-              <div className="prose prose-invert max-w-none">
-                {researchData.insights.split('\n').map((para, i) => (
-                  <p key={i} className="text-foreground/90 leading-relaxed text-lg mb-4">
-                    {para}
-                  </p>
-                ))}
+              <div className="prose prose-invert prose-primary max-w-none">
+                {/* Very simple markdown parsing for MVP */}
+                {researchData.literature_review.split('\n').map((para, i) => {
+                  if (para.startsWith('# ')) return <h1 key={i} className="text-3xl font-bold mt-8 mb-4">{para.replace('# ', '')}</h1>;
+                  if (para.startsWith('## ')) return <h2 key={i} className="text-2xl font-semibold mt-6 mb-3">{para.replace('## ', '')}</h2>;
+                  if (para.startsWith('### ')) return <h3 key={i} className="text-xl font-medium mt-4 mb-2">{para.replace('### ', '')}</h3>;
+                  if (para.trim() === '') return <br key={i} />;
+                  return <p key={i} className="text-foreground/90 leading-relaxed text-lg mb-4">{para}</p>;
+                })}
               </div>
 
               <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t border-cardBorder">
                 <div className="flex items-center gap-2 text-sm text-muted bg-background px-4 py-2 rounded-full border border-cardBorder">
                   <FileText className="w-4 h-4 text-primary" />
-                  {researchData.papers_processed} Papers Processed
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted bg-background px-4 py-2 rounded-full border border-cardBorder">
-                  <Database className="w-4 h-4 text-primary" />
-                  {researchData.chunks_embedded} Vector Chunks Stored
+                  {researchData.paper_count} Papers Processed
                 </div>
               </div>
             </div>
+
+            {/* Insights Section */}
+            {researchData.insights && (
+              <div className="grid md:grid-cols-2 gap-6">
+                 <div className="bg-card border border-cardBorder rounded-2xl p-6">
+                   <h3 className="text-xl font-semibold mb-4 text-yellow-400">Research Gaps</h3>
+                   <ul className="list-disc pl-5 space-y-2 text-muted">
+                     {researchData.insights.research_gaps.map((gap, i) => <li key={i}>{gap}</li>)}
+                   </ul>
+                 </div>
+                 <div className="bg-card border border-cardBorder rounded-2xl p-6">
+                   <h3 className="text-xl font-semibold mb-4 text-blue-400">Future Directions</h3>
+                   <ul className="list-disc pl-5 space-y-2 text-muted">
+                     {researchData.insights.future_directions.map((dir, i) => <li key={i}>{dir}</li>)}
+                   </ul>
+                 </div>
+              </div>
+            )}
 
             {/* Sources Section */}
             <div className="space-y-6">
@@ -147,7 +175,7 @@ function App() {
               </div>
 
               <div className="grid gap-6">
-                {researchData.sources.map((paper) => (
+                {researchData.papers.map((paper) => (
                   <div
                     key={paper.id}
                     className="bg-card border border-cardBorder rounded-2xl p-6 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5 group"
@@ -170,6 +198,12 @@ function App() {
                         <ExternalLink className="w-4 h-4" />
                         PDF
                       </a>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-cardBorder">
+                      <p className="text-sm font-semibold text-primary mb-1">AI Summary:</p>
+                      <p className="text-muted leading-relaxed text-sm">
+                        {paper.summary}
+                      </p>
                     </div>
                   </div>
                 ))}

@@ -25,7 +25,19 @@ def get_llm_service() -> LLMService:
     return LLMService(api_key=_settings.nvidia_api_key)
 from app.services.vector_store_service import VectorStoreService
 
+from app.services.orchestrator_service import OrchestratorService
+
 @lru_cache
 def get_vector_store() -> VectorStoreService:
-    """Return a singleton instance of the VectorStoreService."""
+    """
+    Returns a singleton instance of the VectorStoreService.
+    Must be initialized during app startup.
+    """
     return VectorStoreService()
+
+def get_orchestrator_service(
+    llm_service: LLMService = Depends(get_llm_service),
+    vector_store: VectorStoreService = Depends(get_vector_store),
+) -> OrchestratorService:
+    """Provides an instance of OrchestratorService injected with required dependencies."""
+    return OrchestratorService(llm_service=llm_service, vector_store=vector_store)

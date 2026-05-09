@@ -1,23 +1,16 @@
 """Research route — POST /api/research.
 
-This is a simplified MVP pipeline that runs the core agents sequentially:
-Search -> PDF Download -> Chunk & Embed -> Retrieve -> Answer.
-No complex orchestration or sub-topic planning yet.
+This uses the OrchestratorService to run the full multi-agent pipeline.
 """
 
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
-from app.agents.embedding_agent import EmbeddingAgent
-from app.agents.pdf_agent import PDFAgent
-from app.agents.retrieval_agent import RetrievalAgent
-from app.agents.search_agent import SearchAgent
-from app.api.deps import get_llm_service, get_vector_store
+from app.api.deps import get_orchestrator_service
 from app.core.exceptions import AutoResearcherError
 from app.core.schemas import APIError, APIResponse, ResearchRequest
-from app.services.llm_service import LLMService
-from app.services.vector_store_service import VectorStoreService
+from app.services.orchestrator_service import OrchestratorService
 
 logger = logging.getLogger(__name__)
 
@@ -27,85 +20,41 @@ router = APIRouter()
 @router.post("/research", response_model=APIResponse)
 async def conduct_research(
     request: ResearchRequest,
-    llm: LLMService = Depends(get_llm_service),
-    vector_store: VectorStoreService = Depends(get_vector_store),
+    orchestrator: OrchestratorService = Depends(get_orchestrator_service),
 ) -> APIResponse:
-    """End-to-end research pipeline (MVP).
+    """End-to-end multi-agent research pipeline.
 
-    Takes a topic, searches for papers, downloads them, stores them in FAISS,
-    and then asks the LLM to provide insights based on the retrieved data.
+    Decomposes topic, searches, extracts, embeds, analyzes, extracts insights, 
+    and writes a final literature review.
     """
-    logger.info("Starting research pipeline MVP for topic: '%s'", request.topic)
+    logger.info("Handling POST /api/research for topic: '%s'", request.topic)
 
     try:
-        # 1. Search Agent
-        search_agent = SearchAgent(llm_service=llm)
-        papers = await search_agent.run([request.topic], max_per_topic=request.max_papers)
-
-        if not papers:
-            return APIResponse(
-                success=False,
-                error=APIError(
-                    code="NO_PAPERS_FOUND",
-                    message="Could not find any relevant papers for the given topic.",
-                ),
-            )
-
-        # 2. PDF Agent
-        pdf_agent = PDFAgent()
-        processed_papers = await pdf_agent.run(papers)
-
-        if not processed_papers:
-            return APIResponse(
-                success=False,
-                error=APIError(
-                    code="PDF_DOWNLOAD_FAILED",
-                    message="Found papers, but could not download or parse any of their PDFs.",
-                ),
-            )
-
-        # 3. Embedding Agent
-        embedding_agent = EmbeddingAgent(vector_store=vector_store)
-        chunk_ids = await embedding_agent.run(processed_papers)
-        
-        if not chunk_ids:
-            return APIResponse(
-                success=False,
-                error=APIError(
-                    code="EMBEDDING_FAILED",
-                    message="Failed to extract and embed chunks from the downloaded papers.",
-                ),
-            )
-
-        # 4. Retrieval Agent (generate answer/insights)
-        if request.include_insights:
-            retrieval_agent = RetrievalAgent(llm_service=llm, vector_store=vector_store)
-            
-            # Use the original topic as the query for now
-            query = f"Provide a comprehensive summary of recent research findings regarding: {request.topic}"
-            answer = await retrieval_agent.run(query=query, top_k=10)
-        else:
-            answer = "Insights generation was disabled for this request."
+        final_report = await orchestrator.run_research(
+            topic=request.topic, 
+            max_papers=request.max_papers
+        )
 
         return APIResponse(
             success=True,
-            data={
-                "topic": request.topic,
-                "papers_processed": len(processed_papers),
-                "chunks_embedded": len(chunk_ids),
-                "insights": answer,
-                "sources": [p.model_dump(exclude={"full_text"}) for p in processed_papers]
-            },
+            data=final_report.model_dump(),
             meta={
-                "pipeline": "mvp_sequential"
+                "pipeline": "full_orchestrator"
             }
         )
 
+    except ValueError as e:
+        # Expected errors like no papers found
+        logger.warning("Research pipeline stopped: %s", e)
+        return APIResponse(
+            success=False,
+            error=APIError(
+                code="NO_RESULTS",
+                message=str(e),
+            ),
+        )
     except AutoResearcherError as e:
-        # Let the global exception handler deal with structured logging and responses
-        # if we want, but since we are in a route, we can just return a clean APIResponse.
-        # Alternatively, raise e and let main.py catch it. We'll return it directly here.
-        logger.error("Research pipeline failed: %s", e)
+        logger.error("Research pipeline failed with domain error: %s", e)
         return APIResponse(
             success=False,
             error=APIError(
@@ -114,7 +63,7 @@ async def conduct_research(
             ),
         )
     except Exception as e:
-        logger.error("Unexpected error in research pipeline: %s", e)
+        logger.error("Unexpected error in research pipeline: %s", e, exc_info=True)
         return APIResponse(
             success=False,
             error=APIError(
@@ -122,3 +71,19 @@ async def conduct_research(
                 message=f"An unexpected error occurred: {e}",
             ),
         )
+
+
+# We could also add GET /api/papers/{id} here if needed, but the plan step 4
+# says "Add GET /api/papers/{id} route"
+# For now, we will just return a 501 Not Implemented or skip it since we don't
+# persist individual paper JSONs to a database yet.
+@router.get("/papers/{paper_id}", response_model=APIResponse)
+async def get_paper(paper_id: str) -> APIResponse:
+    """Retrieve a previously analyzed paper. (Placeholder)"""
+    return APIResponse(
+        success=False,
+        error=APIError(
+            code="NOT_IMPLEMENTED",
+            message="Database persistence for individual papers is not yet implemented in Phase 7."
+        )
+    )

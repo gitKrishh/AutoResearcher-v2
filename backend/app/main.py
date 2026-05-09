@@ -17,6 +17,7 @@ from app.core.exceptions import AutoResearcherError
 from app.core.logging import setup_logging
 from app.core.schemas import APIError, APIResponse
 from app.api.routers.health import router as health_router
+from app.api.routers.search import router as search_router
 
 # Configure logging before anything else
 setup_logging()
@@ -110,6 +111,6 @@ async def autoresearcher_error_handler(
 
 app.include_router(health_router, prefix="/api", tags=["health"])
 
-# TODO (Phase 1): app.include_router(search_router, prefix="/api", tags=["search"])
+app.include_router(search_router, prefix="/api", tags=["search"])
 # TODO (Phase 5): app.include_router(research_router, prefix="/api", tags=["research"])
 # TODO (Phase 7): app.include_router(papers_router, prefix="/api", tags=["papers"])

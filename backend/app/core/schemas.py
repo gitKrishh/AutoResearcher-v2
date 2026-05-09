@@ -77,6 +77,14 @@ class Paper(BaseModel):
     source: str  # "arxiv" | "semantic_scholar"
 
 
+class ProcessedPaper(Paper):
+    """Paper with extracted full text from PDF."""
+
+    full_text: str
+    page_count: int
+    text_length: int
+
+
 class ResearchRequest(BaseModel):
     """Request body for POST /api/research."""
 

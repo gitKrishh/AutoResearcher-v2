@@ -23,3 +23,9 @@ def get_llm_service() -> LLMService:
     """
     _settings = get_settings()
     return LLMService(api_key=_settings.openai_api_key)
+from app.services.vector_store_service import VectorStoreService
+
+@lru_cache
+def get_vector_store() -> VectorStoreService:
+    """Return a singleton instance of the VectorStoreService."""
+    return VectorStoreService()

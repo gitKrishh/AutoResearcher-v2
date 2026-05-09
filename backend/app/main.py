@@ -40,14 +40,37 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("AutoResearcher backend starting up...")
     logger.info("Environment: %s", settings.environment)
 
-    # TODO (Phase 4): Load FAISS index from disk
-    # TODO (Phase 3): Pre-load embedding model
+    # Load FAISS index from disk
+    from app.api.deps import get_vector_store
+    from pathlib import Path
+    
+    vector_store = get_vector_store()
+    vector_dir = Path(settings.faiss_index_path).parent
+    
+    try:
+        vector_store.load_index(vector_dir)
+    except Exception:
+        logger.info("No existing vector store found, initializing a new one.")
+        vector_store.initialize_index()
+
+    # Pre-load embedding model
+    from app.tools.embedding_tool import _get_model
+    try:
+        _get_model()
+    except Exception as e:
+        logger.warning("Could not pre-load embedding model: %s", e)
 
     logger.info("AutoResearcher backend ready.")
     yield
 
     # --- Shutdown ---
     logger.info("AutoResearcher backend shutting down...")
+    
+    # Save FAISS index
+    try:
+        vector_store.save_index(vector_dir)
+    except Exception as e:
+        logger.error("Failed to save FAISS index on shutdown: %s", e)
 
 
 # ============================================================

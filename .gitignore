@@ -16,6 +16,9 @@ env/
 # Environment variables
 .env
 
+# AI agent context (local only)
+.agent/
+
 # FAISS index + vector store
 vector_store/
 

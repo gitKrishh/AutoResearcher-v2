@@ -61,10 +61,18 @@ def sample_analyses():
 
 
 async def test_writer_agent_success(mock_llm_service, sample_analyses):
-    """WriterAgent should generate comparison, insights, and final review."""
+    """WriterAgent should generate comparison and final review."""
     agent = WriterAgent(llm_service=mock_llm_service)
     
-    report = await agent.run(topic="Test Topic", analyses=sample_analyses)
+    from app.core.schemas import InsightReport
+    insights = InsightReport(
+        research_gaps=["Gap 1"],
+        contradictions=["Contradiction 1"],
+        trends=["Trend 1"],
+        future_directions=["Direction 1"]
+    )
+    
+    report = await agent.run(topic="Test Topic", analyses=sample_analyses, insights=insights)
     
     assert report.topic == "Test Topic"
     assert report.paper_count == 1

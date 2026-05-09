@@ -22,7 +22,7 @@ def get_llm_service() -> LLMService:
     Uses OpenAI API key from settings.
     """
     _settings = get_settings()
-    return LLMService(api_key=_settings.openai_api_key)
+    return LLMService(api_key=_settings.nvidia_api_key)
 from app.services.vector_store_service import VectorStoreService
 
 @lru_cache

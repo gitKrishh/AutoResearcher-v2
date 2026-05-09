@@ -106,6 +106,26 @@ class PaperAnalysis(Paper):
     contribution: str
 
 
+class InsightReport(BaseModel):
+    """Structured insights generated from cross-paper analysis."""
+    
+    research_gaps: list[str]
+    contradictions: list[str]
+    trends: list[str]
+    future_directions: list[str]
+
+
+class FinalReport(BaseModel):
+    """The final research output compiled by the WriterAgent."""
+    
+    topic: str
+    paper_count: int
+    papers: list[PaperAnalysis]
+    literature_review: str
+    insights: InsightReport | None
+    generated_at: str
+
+
 class ResearchRequest(BaseModel):
     """Request body for POST /api/research."""
 

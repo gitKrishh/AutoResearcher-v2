@@ -23,7 +23,10 @@ class LLMService:
     """
 
     def __init__(self, api_key: str) -> None:
-        self.client = AsyncOpenAI(api_key=api_key)
+        self.client = AsyncOpenAI(
+            api_key=api_key,
+            base_url="https://integrate.api.nvidia.com/v1"
+        )
 
     async def complete(
         self,
@@ -44,7 +47,7 @@ class LLMService:
         Raises:
             LLMError: If the API call fails or returns empty content.
         """
-        model = model or settings.default_llm_model
+        model = model or settings.nvidia_model
         logger.debug("LLM call starting — model: %s, prompt length: %d", model, len(prompt))
 
         try:
@@ -81,7 +84,7 @@ class LLMService:
         Raises:
             LLMError: If the API call fails or response is not valid JSON.
         """
-        model = model or settings.default_llm_model
+        model = model or settings.nvidia_model
         raw = await self.complete(
             prompt + "\nRespond with ONLY valid JSON.",
             model=model,

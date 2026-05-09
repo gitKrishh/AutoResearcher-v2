@@ -85,6 +85,16 @@ class ProcessedPaper(Paper):
     text_length: int
 
 
+class ChunkResult(BaseModel):
+    """A text chunk returned from similarity search."""
+    
+    text: str
+    score: float
+    paper_id: str
+    paper_title: str
+    page_num: int | None = None
+
+
 class ResearchRequest(BaseModel):
     """Request body for POST /api/research."""
 

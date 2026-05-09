@@ -5,6 +5,7 @@ Route handlers use Depends() to inject these.
 """
 
 from functools import lru_cache
+from fastapi import Depends
 
 from app.core.config import Settings, get_settings
 from app.services.llm_service import LLMService

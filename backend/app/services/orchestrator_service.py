@@ -55,7 +55,7 @@ class OrchestratorService:
             # 2. Search
             logger.info("--- Phase 2: Searching ---")
             # For each sub-topic, get some papers, but limit total to max_papers
-            papers = await self.searcher.run(sub_topics, max_results_per_topic=3)
+            papers = await self.searcher.run(sub_topics, max_per_topic=3)
             # Limit exactly to max_papers to avoid overloading
             papers = papers[:max_papers]
             logger.info("Found %d unique papers across all sub-topics.", len(papers))

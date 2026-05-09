@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { apiService } from '@/services/apiService';
-import { FinalReport } from '@/types/research';
+import type { FinalReport } from '@/types/research';
 import { toast } from 'sonner';
 
 export type PipelineStep = 

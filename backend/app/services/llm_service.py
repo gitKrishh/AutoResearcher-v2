@@ -18,14 +18,17 @@ logger = logging.getLogger(__name__)
 class LLMService:
     """Wrapper for all LLM API calls.
 
-    Uses OpenAI SDK for text generation.
-    NVIDIA API is reserved for embeddings only (handled in embedding_tool.py).
+    Uses OpenAI SDK for text generation (compatible with OpenAI and NVIDIA NIM).
     """
 
     def __init__(self, api_key: str) -> None:
+        base_url = "https://integrate.api.nvidia.com/v1"
+        if not api_key.startswith("nvapi-"):
+            base_url = None # Use default OpenAI URL
+            
         self.client = AsyncOpenAI(
             api_key=api_key,
-            base_url="https://integrate.api.nvidia.com/v1"
+            base_url=base_url
         )
 
     async def complete(

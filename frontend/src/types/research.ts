@@ -1,4 +1,4 @@
-import { PaperAnalysis } from './paper';
+import type { PaperAnalysis } from './paper';
 
 export interface InsightReport {
   research_gaps: string[];

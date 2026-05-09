@@ -1,5 +1,5 @@
 import React from 'react';
-import { InsightReport } from '@/types/research';
+import type { InsightReport } from '@/types/research';
 import { Lightbulb, Target, TrendingUp, Compass } from 'lucide-react';
 
 interface InsightPanelProps {

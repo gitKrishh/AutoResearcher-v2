@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Circle, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { PipelineStep } from '@/hooks/useResearch';
+import type { PipelineStep } from '@/hooks/useResearch';
 
 interface AgentStepProps {
   name: string;

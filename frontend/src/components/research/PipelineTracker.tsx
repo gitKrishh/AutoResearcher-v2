@@ -1,6 +1,6 @@
 import React from 'react';
 import AgentStep from './AgentStep';
-import { PipelineStep } from '@/hooks/useResearch';
+import type { PipelineStep } from '@/hooks/useResearch';
 
 interface PipelineTrackerProps {
   currentStep: PipelineStep;

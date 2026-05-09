@@ -1,6 +1,7 @@
 import React from 'react';
 import { BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ThemeToggle } from '../theme-toggle';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </Link>
             
             <div className="flex items-center gap-6">
+              <ThemeToggle />
               <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                 Home
               </Link>

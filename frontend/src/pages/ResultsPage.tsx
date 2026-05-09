@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FinalReport } from '@/types/research';
+import type { FinalReport } from '@/types/research';
 import ReportView from '@/components/results/ReportView';
 import PaperList from '@/components/results/PaperList';
 import InsightPanel from '@/components/results/InsightPanel';
+import ChatPanel from '@/components/results/ChatPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { FileText, Sparkles, BookOpen, ArrowLeft, Download, Share2 } from 'lucide-react';
@@ -90,8 +91,9 @@ const ResultsPage: React.FC = () => {
           </TabsList>
         </div>
 
-        <TabsContent value="report" className="mt-0 ring-offset-transparent focus-visible:ring-0">
+        <TabsContent value="report" className="mt-0 ring-offset-transparent focus-visible:ring-0 space-y-8">
           <ReportView content={report.literature_review} />
+          <ChatPanel />
         </TabsContent>
 
         <TabsContent value="insights" className="mt-0 ring-offset-transparent focus-visible:ring-0">

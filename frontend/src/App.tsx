@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Search, Loader2, BookOpen, ExternalLink, ArrowRight } from 'lucide-react';
+import { Search, Loader2, BookOpen, ExternalLink, ArrowRight, Sparkles, Database, FileText } from 'lucide-react';
 
 interface Paper {
   id: string;
@@ -12,10 +12,18 @@ interface Paper {
   source: string;
 }
 
+interface ResearchData {
+  topic: string;
+  papers_processed: number;
+  chunks_embedded: number;
+  insights: string;
+  sources: Paper[];
+}
+
 function App() {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [papers, setPapers] = useState<Paper[]>([]);
+  const [researchData, setResearchData] = useState<ResearchData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -24,17 +32,19 @@ function App() {
 
     setIsLoading(true);
     setError(null);
+    setResearchData(null);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/search', {
-        query: query.trim(),
-        max_results: 5,
+      const response = await axios.post('http://localhost:8000/api/research', {
+        topic: query.trim(),
+        max_papers: 3, // keep it small for faster MVP testing
+        include_insights: true,
       });
 
       if (response.data.success) {
-        setPapers(response.data.data);
+        setResearchData(response.data.data);
       } else {
-        setError(response.data.error?.message || 'Search failed');
+        setError(response.data.error?.message || 'Research failed');
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || err.message || 'An error occurred');
@@ -64,7 +74,7 @@ function App() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for academic papers (e.g. LLM Agents)..."
+              placeholder="Conduct research on a topic (e.g. LLM Agents)..."
               className="flex-1 bg-transparent border-none outline-none px-4 py-3 text-foreground placeholder:text-muted"
             />
             <button
@@ -75,16 +85,21 @@ function App() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Searching
+                  Researching...
                 </>
               ) : (
                 <>
-                  Search
+                  Research
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </div>
+          {isLoading && (
+            <p className="text-center text-sm text-primary/80 mt-4 animate-pulse">
+              Searching arXiv → Downloading PDFs → Extracting Text → Building FAISS Vector DB → Generating RAG Insights... (This might take ~15 seconds)
+            </p>
+          )}
         </form>
 
         {error && (
@@ -93,45 +108,72 @@ function App() {
           </div>
         )}
 
-        {papers.length > 0 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <div className="flex items-center justify-between border-b border-cardBorder pb-4">
-              <h2 className="text-2xl font-semibold">Search Results</h2>
-              <span className="text-sm text-muted bg-card px-3 py-1 rounded-full border border-cardBorder">
-                {papers.length} papers found
-              </span>
+        {researchData && (
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            {/* Insights Section */}
+            <div className="bg-card border border-primary/30 rounded-3xl p-8 shadow-2xl shadow-primary/5 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold">AI Insights</h2>
+              </div>
+              
+              <div className="prose prose-invert max-w-none">
+                {researchData.insights.split('\n').map((para, i) => (
+                  <p key={i} className="text-foreground/90 leading-relaxed text-lg mb-4">
+                    {para}
+                  </p>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t border-cardBorder">
+                <div className="flex items-center gap-2 text-sm text-muted bg-background px-4 py-2 rounded-full border border-cardBorder">
+                  <FileText className="w-4 h-4 text-primary" />
+                  {researchData.papers_processed} Papers Processed
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted bg-background px-4 py-2 rounded-full border border-cardBorder">
+                  <Database className="w-4 h-4 text-primary" />
+                  {researchData.chunks_embedded} Vector Chunks Stored
+                </div>
+              </div>
             </div>
 
-            <div className="grid gap-6">
-              {papers.map((paper) => (
-                <div
-                  key={paper.id}
-                  className="bg-card border border-cardBorder rounded-2xl p-6 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5 group"
-                >
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-semibold leading-tight group-hover:text-primary transition-colors">
-                        {paper.title}
-                      </h3>
-                      <p className="text-sm text-primary/80 font-medium">
-                        {paper.authors.join(', ')} • {paper.published}
-                      </p>
+            {/* Sources Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-cardBorder pb-4">
+                <h2 className="text-2xl font-semibold">Source Papers</h2>
+              </div>
+
+              <div className="grid gap-6">
+                {researchData.sources.map((paper) => (
+                  <div
+                    key={paper.id}
+                    className="bg-card border border-cardBorder rounded-2xl p-6 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5 group"
+                  >
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-semibold leading-tight group-hover:text-primary transition-colors">
+                          {paper.title}
+                        </h3>
+                        <p className="text-sm text-primary/80 font-medium">
+                          {paper.authors.join(', ')} • {paper.published}
+                        </p>
+                      </div>
+                      <a
+                        href={paper.pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm bg-primary/10 text-primary hover:bg-primary/20 px-4 py-2 rounded-lg font-medium transition-colors shrink-0"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        PDF
+                      </a>
                     </div>
-                    <a
-                      href={paper.pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm bg-primary/10 text-primary hover:bg-primary/20 px-4 py-2 rounded-lg font-medium transition-colors shrink-0"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      PDF
-                    </a>
                   </div>
-                  <p className="mt-4 text-muted leading-relaxed line-clamp-3">
-                    {paper.abstract}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}

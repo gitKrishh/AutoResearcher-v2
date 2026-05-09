@@ -49,7 +49,7 @@ async def search_arxiv(query: str, max_results: int = 10) -> list[Paper]:
     logger.info("Searching arXiv: query='%s', max_results=%d", query, max_results)
 
     try:
-        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
             response = await client.get(ARXIV_API_URL, params=params)
             response.raise_for_status()
     except httpx.HTTPError as e:

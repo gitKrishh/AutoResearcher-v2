@@ -95,6 +95,17 @@ class ChunkResult(BaseModel):
     page_num: int | None = None
 
 
+class PaperAnalysis(Paper):
+    """Detailed LLM-generated analysis of a single paper."""
+
+    summary: str
+    methodology: str
+    datasets: str
+    key_findings: str
+    limitations: str
+    contribution: str
+
+
 class ResearchRequest(BaseModel):
     """Request body for POST /api/research."""
 

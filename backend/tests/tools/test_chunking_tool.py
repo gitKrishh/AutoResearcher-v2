@@ -5,8 +5,8 @@ from app.tools.chunking_tool import chunk_text
 
 def test_chunk_text_returns_list_of_strings():
     """chunk_text should return a list of string chunks."""
-    text = "This is a simple test sentence. " * 10
-    chunks = chunk_text(text, chunk_size=50, chunk_overlap=10)
+    text = "This is a much longer test sentence to ensure chunks meet the 50 char minimum. " * 10
+    chunks = chunk_text(text, chunk_size=100, chunk_overlap=20)
     
     assert isinstance(chunks, list)
     assert len(chunks) > 0

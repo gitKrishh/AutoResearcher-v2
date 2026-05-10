@@ -48,7 +48,7 @@ class AnalysisAgent:
             )
 
             try:
-                result_json = await self.llm.complete_json(prompt, model=model)
+                result_json = await self.llm.complete_json(prompt)
                 
                 # Build PaperAnalysis from JSON
                 analysis = PaperAnalysis(

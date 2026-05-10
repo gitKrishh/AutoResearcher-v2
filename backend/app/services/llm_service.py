@@ -51,10 +51,28 @@ class LLMService:
             LLMError: If the API call fails or returns empty content.
         """
         model = model or settings.nvidia_model
+        
+        # Decide which client/base_url to use based on the model
+        is_nvidia_model = any(m in model.lower() for m in ["meta/", "nvidia/", "mistralai/"])
+        
+        # We can re-use the client but NIM requires integrate.api.nvidia.com
+        # However, AsyncOpenAI client base_url is immutable.
+        # So we check if we need to use a different client.
+        
+        client = self.client
+        if is_nvidia_model and not self.client.base_url.host.endswith("nvidia.com"):
+            # If we need NVIDIA but client is OpenAI
+            from openai import AsyncOpenAI as AsyncOpenAIClient
+            client = AsyncOpenAIClient(api_key=settings.nvidia_api_key, base_url="https://integrate.api.nvidia.com/v1")
+        elif not is_nvidia_model and self.client.base_url.host.endswith("nvidia.com"):
+            # If we need OpenAI but client is NVIDIA
+            from openai import AsyncOpenAI as AsyncOpenAIClient
+            client = AsyncOpenAIClient(api_key=settings.openai_api_key)
+
         logger.debug("LLM call starting — model: %s, prompt length: %d", model, len(prompt))
 
         try:
-            response = await self.client.chat.completions.create(
+            response = await client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=temperature,

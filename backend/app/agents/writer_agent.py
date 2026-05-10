@@ -29,7 +29,7 @@ class WriterAgent:
         prompt = ANALYSIS_COMPARE_PAPERS.format(paper_summaries=summaries)
         
         try:
-            return await self.llm.complete_json(prompt, model=settings.heavy_llm_model)
+            return await self.llm.complete_json(prompt)
         except Exception as e:
             logger.error("Failed to generate comparison: %s", e)
             return {"error": "Failed to generate comparison."}
@@ -78,7 +78,6 @@ class WriterAgent:
         try:
             review_markdown = await self.llm.complete(
                 review_prompt, 
-                model=settings.heavy_llm_model,
                 temperature=0.4
             )
         except Exception as e:

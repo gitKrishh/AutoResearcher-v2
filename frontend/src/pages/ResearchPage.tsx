@@ -2,9 +2,10 @@ import React from 'react';
 import PipelineTracker from '@/components/research/PipelineTracker';
 import { useResearch } from '@/hooks/useResearch';
 import ErrorMessage from '@/components/common/ErrorMessage';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { RotateCcw, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 const ResearchPage: React.FC = () => {
   const { query, currentStep, error, retry } = useResearch();
@@ -33,12 +34,10 @@ const ResearchPage: React.FC = () => {
                 <RotateCcw className="w-4 h-4" />
                 Try Again
               </Button>
-              <Button asChild className="gap-2">
-                <Link to="/">
-                  <Home className="w-4 h-4" />
-                  Back to Home
-                </Link>
-              </Button>
+              <Link to="/" className={cn(buttonVariants({ variant: "default" }), "gap-2")}>
+                <Home className="w-4 h-4" />
+                Back to Home
+              </Link>
             </div>
           </div>
         )}

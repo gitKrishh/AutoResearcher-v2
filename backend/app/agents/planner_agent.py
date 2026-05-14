@@ -31,7 +31,8 @@ class PlannerAgent:
         try:
             # We use complete_json because the prompt specifically asks for a JSON array
             sub_topics = await self.llm.complete_json(
-                prompt
+                prompt,
+                model=settings.planner_model
             )
             
             if not isinstance(sub_topics, list) or not all(isinstance(t, str) for t in sub_topics):

@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     # NVIDIA API (used ONLY for embeddings — not for chat/completions)
     nvidia_api_key: str = ""
     nvidia_model: str = "meta/llama-3.1-70b-instruct"
+    
+    # Agent-specific model overrides (defaults to nvidia_model)
+    planner_model: str | None = None
+    analyzer_model: str | None = None
+    writer_model: str | None = None
 
     # LLM Models
     default_llm_model: str = "gpt-4o-mini"

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { PaperAnalysis } from '@/types/paper';
-import { ExternalLink, FileText, Calendar, User } from 'lucide-react';
+import { ExternalLink, FileText, Calendar, User, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface PaperListProps {

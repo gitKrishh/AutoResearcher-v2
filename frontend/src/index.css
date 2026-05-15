@@ -140,3 +140,26 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+@media print {
+  nav, footer, button, .tabs-list-container, .chat-panel-container {
+    display: none !important;
+  }
+  
+  body, .max-w-6xl {
+    background: white !important;
+    color: black !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  h1, h2, h3, p {
+    color: black !important;
+  }
+
+  a {
+    text-decoration: underline !important;
+    color: black !important;
+  }
+}

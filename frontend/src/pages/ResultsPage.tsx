@@ -8,6 +8,7 @@ import ChatPanel from '@/components/results/ChatPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { FileText, Sparkles, BookOpen, ArrowLeft, Download, Share2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const ResultsPage: React.FC = () => {
   const [report, setReport] = useState<FinalReport | null>(null);
@@ -21,6 +22,16 @@ const ResultsPage: React.FC = () => {
       navigate('/');
     }
   }, [navigate]);
+
+  const handleExportPDF = () => {
+    window.print();
+  };
+
+  const handleShare = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    toast.success('Link copied to clipboard!');
+  };
 
   if (!report) return null;
 
@@ -47,11 +58,14 @@ const ResultsPage: React.FC = () => {
         </div>
 
         <div className="flex gap-3">
-          <Button variant="outline" className="gap-2 rounded-full px-6">
+          <Button variant="outline" className="gap-2 rounded-full px-6" onClick={handleShare}>
             <Share2 className="w-4 h-4" />
             Share
           </Button>
-          <Button className="gap-2 rounded-full px-6 bg-primary hover:bg-primaryHover">
+          <Button 
+            className="gap-2 rounded-full px-6 bg-primary hover:bg-primaryHover"
+            onClick={handleExportPDF}
+          >
             <Download className="w-4 h-4" />
             Export PDF
           </Button>
@@ -59,7 +73,7 @@ const ResultsPage: React.FC = () => {
       </header>
 
       <Tabs defaultValue="report" className="w-full space-y-8">
-        <div className="flex justify-center border-b border-border pb-px">
+        <div className="flex justify-center border-b border-border pb-px tabs-list-container">
           <TabsList className="bg-transparent h-auto p-0 gap-8">
             <TabsTrigger 
               value="report" 
@@ -91,9 +105,11 @@ const ResultsPage: React.FC = () => {
           </TabsList>
         </div>
 
-        <TabsContent value="report" className="mt-0 ring-offset-transparent focus-visible:ring-0 space-y-8">
+        <TabsContent value="report" className="mt-0 ring-offset-transparent focus-visible:ring-0 space-y-8 report-container">
           <ReportView content={report.literature_review} />
-          <ChatPanel />
+          <div className="chat-panel-container">
+            <ChatPanel />
+          </div>
         </TabsContent>
 
         <TabsContent value="insights" className="mt-0 ring-offset-transparent focus-visible:ring-0">

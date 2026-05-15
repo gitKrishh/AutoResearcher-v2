@@ -26,7 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 Home
               </Link>
               <a 
-                href="https://github.com" 
+                href="https://github.com/gitKrishh/AutoResearcher-v2.git" 
                 target="_blank" 
                 rel="noreferrer"
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
